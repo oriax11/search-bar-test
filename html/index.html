@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artists</title>
+    <link rel="stylesheet" href="/style.css">
+    <form id="form" role="search">
+        <input type="search" id="query" name="q"
+         placeholder="Search..."
+         aria-label="Search through site content">
+        <button>Search</button>
+      </form>
+</head>
+<body>
+    <h1>GROUPIE TRACKER</h1>
+    <div class="container">
+        <div class="card">
+            <form action="/artists" method="post">
+                {{ range . }}
+                    <div class="artist-item">
+                        <a href="/artist/{{.ID}}">
+                            <h2 class="names">{{ .Name }}</h2>
+                            <img src="{{ .Image }}" alt="{{ .Name }}">
+                        </a>
+                    </div>
+                {{ end }}
+            </form>
+        </div>
+    </div>
+   
+</body>
+
+</html>

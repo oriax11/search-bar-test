@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Artist.Name}} - Details</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <h1>{{.Artist.Name}}</h1>
+    <img src="{{.Artist.Image}}" alt="{{.Artist.Name}}">
+    <section>
+        <h2>Band Information</h2>
+        <table>
+            <tr>
+                <th>Band Name</th>
+                <td>{{.Artist.Name}}</td>
+            </tr>
+            <tr>
+                <th>Members</th>
+                <td>{{range .Artist.Members}}{{.}}, {{end}}</td>
+            </tr>
+            <tr>
+                <th>Creation Date</th>
+                <td>{{.Artist.CreationDate}}</td>
+            </tr>
+            <tr>
+                <th>First Album</th>
+                <td>{{.Artist.FirstAlbum}}</td>
+            </tr>
+        </table>
+    </section>
+    
+    <section>
+        <h2>Concert Dates and Locations</h2>
+        <details>
+            <summary>Dates</summary>
+            <ul>
+                {{range .DatesLocations.ConcertDates}}
+                <li>{{.}}</li>
+                {{end}}
+            </ul>
+        </details>
+        <details>
+            <summary>Locations</summary>
+            <ul>
+                {{range .Locations.Locations}}
+                <li>{{.}}</li>
+                {{end}}
+            </ul>
+        </details>
+        <details>
+            <summary>Dates and Locations</summary>
+            <table>
+                <tr>
+                    <th>Location</th>
+                    <th>Dates</th>
+                </tr>
+            {{range $locations, $dates := .Relations.DatesLocations}}
+                <tr>
+                    <td>{{$locations}}</td>
+                    <td>{{range $dates}}<div>{{.}}</div>{{end}}</td>
+                </tr>
+                {{end}}
+            </table>
+        </details>
+    </section>
+
+    <div class="goback">
+        <a href="/">Back to all artists</a>
+    </div>
+</body>
+</html>
