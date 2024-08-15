@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 // ArtistDetailHandler handles requests for individual artist details.
@@ -81,7 +82,8 @@ func ArtistDetailHandler(w http.ResponseWriter, r *http.Request) {
 
 // ArtistsHandler handles requests for the main page, displaying all artists.
 func ArtistsHandler(w http.ResponseWriter, r *http.Request) {
-	// Handle requests for the root path and CSS file
+	fmt.Println("Request received for URL:", r.URL.String())
+
 	if r.URL.Path != "/" && r.URL.Path != "/style.css" {
 		http.NotFound(w, r)
 		return
@@ -91,7 +93,6 @@ func ArtistsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Fetch all artists data from the API
 	resp, err := http.Get("https://groupietrackers.herokuapp.com/api/artists")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -99,15 +100,30 @@ func ArtistsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer resp.Body.Close()
 
-	// Decode the JSON response
 	var artists []Artists
 	if err := json.NewDecoder(resp.Body).Decode(&artists); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Render the main page with all artists
-	err = Tpl.ExecuteTemplate(w, "index.html", artists)
+	searchQuery := r.URL.Query().Get("search")
+	fmt.Println("Search query:", searchQuery)
+
+	var filteredArtists []Artists
+	if searchQuery != "" {
+		fmt.Println("Filtering artists for query:", searchQuery)
+		for _, artist := range artists {
+			if strings.Contains(strings.ToLower(artist.Name), strings.ToLower(searchQuery)) {
+				filteredArtists = append(filteredArtists, artist)
+			}
+		}
+	} else {
+		filteredArtists = artists
+	}
+
+	fmt.Println("Number of artists after filtering:", len(filteredArtists))
+
+	err = Tpl.ExecuteTemplate(w, "index.html", filteredArtists)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
