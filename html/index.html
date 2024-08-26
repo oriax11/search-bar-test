@@ -6,24 +6,18 @@
     <title>Artists</title>
     <link rel="stylesheet" href="/style.css">
 </head>
-<script>
-    document.getElementById('searchForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        var query = document.getElementById('query').value;
-        console.log("Form submitted with query: " + query);
-        window.location.href = '/?search=' + encodeURIComponent(query);
-    });
-    
-    console.log("Current URL: " + window.location.href);
-    </script>
+
 <body>
     <h1>GROUPIE TRACKER</h1>
-    <form id="searchForm" role="search">
-        <input type="search" id="query" name="q" 
-         placeholder="Search..." 
-         aria-label="Search through site content">
-        <button type="submit">Search</button>
+    <form action="/search" method="GET" target="_top">
+        <input type="text" name="query" id="search" list="suggestions" placeholder="Search for bands ...">
+        <datalist id="suggestions"></datalist>
+        <input type="submit" value="Search">
     </form>
+    <iframe name="suggestionsFrame" src="/suggestions" style="display:none;"></iframe>
+			<form target="suggestionsFrame" id="suggestionForm">
+				<input type="text" name="query" id="suggestionQuery" style="display:none;">
+			</form> 
     <div class="container">
         <div class="card">
             {{ range . }}
@@ -36,5 +30,7 @@
             {{ end }}
         </div>
     </div>
+
+ 
 </body>
 </html>

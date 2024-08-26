@@ -11,6 +11,9 @@ func main() {
 	// Set up route handlers
 	http.HandleFunc("/", groupie.ArtistsHandler)
 	http.HandleFunc("/artist/", groupie.ArtistDetailHandler)
+	http.HandleFunc("/suggestions", groupie.SuggestionsPageHandler)
+
+
 
 	// Print server information
 	fmt.Printf("Server listening on port %s...\n", groupie.Port)

@@ -104,34 +104,11 @@ func ArtistsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
-	var filteredArtists []Artists
-	query := r.URL.Query().Get("q")
-
-	if query != "" {
-		filteredArtists = searchArtists(query,artists)
-	}else if query==""{
-		filteredArtists=artists
-	}
-
-	err = Tpl.ExecuteTemplate(w, "index.html", filteredArtists)
+	err = Tpl.ExecuteTemplate(w, "index.html", artists)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-}
-
-func searchArtists(query string,artists []Artists ) []Artists {
-	fmt.Println(query)
-	fmt.Println(artists)
-	var result []Artists
-	for _, artist := range artists {
-		if strings.Contains(strings.ToLower(artist.Name), strings.ToLower(query)) {
-			result = append(result, artist)
-		}
-	}
-	fmt.Println(result)
-	return result
 }
 
 // Fetchdata is a generic function to fetch and decode JSON data from the API.
@@ -153,4 +130,50 @@ func Fetchdata(ID int, endpoint string, target any) error {
 	}
 
 	return nil
+}
+
+func PerformSearch(query string) []Artists {
+	query = strings.ToLower(query)
+	var results []Artists
+	resp, _ := http.Get("https://groupietrackers.herokuapp.com/api/artists")
+
+	defer resp.Body.Close()
+
+	var artists []Artists
+	json.NewDecoder(resp.Body).Decode(&artists)
+
+	for _, artist := range artists {
+		if strings.Contains(strings.ToLower(artist.Name), query) {
+			results = append(results, artist)
+		}
+	}
+	return results
+}
+
+func SuggestionsPageHandler(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query().Get("query")
+	results := PerformSearch(query)
+
+	w.Header().Set("Content-Type", "text/html")
+	fmt.Fprintf(w, `
+	<!DOCTYPE html>
+	<html>
+	<head>
+		
+	</head>
+	<body>
+		<datalist id="suggestions">
+`)
+	for _, result := range results {
+		fmt.Fprintf(w, "<option >%s</option>", result.Name)
+	}
+
+	fmt.Fprintf(w, `
+</datalist>
+<script>
+	parent.document.getElementById('suggestions').innerHTML = document.getElementById('suggestions').innerHTML;
+</script>
+</body>
+</html>
+`)
 }
