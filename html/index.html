@@ -36,16 +36,5 @@
             {{ end }}
         </div>
     </div>
-
-    <script>
-    document.getElementById('searchForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        var query = document.getElementById('query').value;
-        console.log("Form submitted with query: " + query);
-        window.location.href = '/?search=' + encodeURIComponent(query);
-    });
-
-    console.log("Current URL: " + window.location.href);
-    </script>
 </body>
 </html>

@@ -82,8 +82,6 @@ func ArtistDetailHandler(w http.ResponseWriter, r *http.Request) {
 
 // ArtistsHandler handles requests for the main page, displaying all artists.
 func ArtistsHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Request received for URL:", r.URL.String())
-
 	if r.URL.Path != "/" && r.URL.Path != "/style.css" {
 		http.NotFound(w, r)
 		return
@@ -106,28 +104,34 @@ func ArtistsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	searchQuery := r.URL.Query().Get("search")
-	fmt.Println("Search query:", searchQuery)
 
 	var filteredArtists []Artists
-	if searchQuery != "" {
-		fmt.Println("Filtering artists for query:", searchQuery)
-		for _, artist := range artists {
-			if strings.Contains(strings.ToLower(artist.Name), strings.ToLower(searchQuery)) {
-				filteredArtists = append(filteredArtists, artist)
-			}
-		}
-	} else {
-		filteredArtists = artists
-	}
+	query := r.URL.Query().Get("q")
 
-	fmt.Println("Number of artists after filtering:", len(filteredArtists))
+	if query != "" {
+		filteredArtists = searchArtists(query,artists)
+	}else if query==""{
+		filteredArtists=artists
+	}
 
 	err = Tpl.ExecuteTemplate(w, "index.html", filteredArtists)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+}
+
+func searchArtists(query string,artists []Artists ) []Artists {
+	fmt.Println(query)
+	fmt.Println(artists)
+	var result []Artists
+	for _, artist := range artists {
+		if strings.Contains(strings.ToLower(artist.Name), strings.ToLower(query)) {
+			result = append(result, artist)
+		}
+	}
+	fmt.Println(result)
+	return result
 }
 
 // Fetchdata is a generic function to fetch and decode JSON data from the API.
