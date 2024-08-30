@@ -12,6 +12,7 @@ func main() {
 	http.HandleFunc("/", groupie.ArtistsHandler)
 	http.HandleFunc("/artist/", groupie.ArtistDetailHandler)
 	http.HandleFunc("/suggestions", groupie.SuggestionsPageHandler)
+	http.HandleFunc("/search",groupie.SearchHandler)
 
 
 

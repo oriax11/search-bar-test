@@ -135,7 +135,10 @@ func Fetchdata(ID int, endpoint string, target any) error {
 func PerformSearch(query string) []Artists {
 	query = strings.ToLower(query)
 	var results []Artists
-	resp, _ := http.Get("https://groupietrackers.herokuapp.com/api/artists")
+	resp, err := http.Get("https://groupietrackers.herokuapp.com/api/artists")
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	defer resp.Body.Close()
 
@@ -143,10 +146,18 @@ func PerformSearch(query string) []Artists {
 	json.NewDecoder(resp.Body).Decode(&artists)
 
 	for _, artist := range artists {
-		if strings.Contains(strings.ToLower(artist.Name), query) {
-			results = append(results, artist)
-		}
-	}
+        // Convert fields to lowercase for case-insensitive comparison
+        name := strings.ToLower(artist.Name)
+        members := strings.ToLower(strings.Join(artist.Members, " "))
+        firstAlbum := strings.ToLower(artist.FirstAlbum)
+        
+        // Check if any field contains the query string
+        if strings.Contains(name, query) ||
+            strings.Contains(members, query) ||
+            strings.Contains(firstAlbum, query) {
+            results = append(results, artist)
+        }
+    }
 	return results
 }
 
@@ -176,4 +187,15 @@ func SuggestionsPageHandler(w http.ResponseWriter, r *http.Request) {
 </body>
 </html>
 `)
+}
+
+func SearchHandler(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query().Get("query")
+	results := PerformSearch(query)
+
+	err := Tpl.ExecuteTemplate(w, "index.html", results)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
