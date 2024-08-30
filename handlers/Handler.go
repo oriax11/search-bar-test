@@ -132,7 +132,7 @@ func Fetchdata(ID int, endpoint string, target any) error {
 	return nil
 }
 
-func PerformSearch(query string) []Artists {
+func PerformSearch(query string) ([]Artists,[]string) {
 	query = strings.ToLower(query)
 	var results []Artists
 	resp, err := http.Get("https://groupietrackers.herokuapp.com/api/artists")
@@ -145,25 +145,31 @@ func PerformSearch(query string) []Artists {
 	var artists []Artists
 	json.NewDecoder(resp.Body).Decode(&artists)
 
+	var types []string 
+
 	for _, artist := range artists {
         // Convert fields to lowercase for case-insensitive comparison
         name := strings.ToLower(artist.Name)
         members := strings.ToLower(strings.Join(artist.Members, " "))
-        firstAlbum := strings.ToLower(artist.FirstAlbum)
+        // firstAlbum := strings.ToLower(artist.FirstAlbum)
         
         // Check if any field contains the query string
-        if strings.Contains(name, query) ||
-            strings.Contains(members, query) ||
-            strings.Contains(firstAlbum, query) {
+        if strings.Contains(name, query)  {
             results = append(results, artist)
+			types= append(types,"Band/Artist")
         }
+		if strings.Contains(members,query) {
+			results = append(results,artist) 
+			types = append (types , "Band member")
+		}
     }
-	return results
+	fmt.Println(types)
+	return results,types
 }
 
 func SuggestionsPageHandler(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query().Get("query")
-	results := PerformSearch(query)
+	results,types := PerformSearch(query)
 
 	w.Header().Set("Content-Type", "text/html")
 	fmt.Fprintf(w, `
@@ -175,8 +181,15 @@ func SuggestionsPageHandler(w http.ResponseWriter, r *http.Request) {
 	<body>
 		<datalist id="suggestions">
 `)
+i:=0
 	for _, result := range results {
-		fmt.Fprintf(w, "<option >%s</option>", result.Name)
+		if types[i]=="Band/Artist" {
+			fmt.Fprintf(w, "<option>%s-%s</option>", result.Name,types[i])
+		} else if types [i] ==  "Band member" {
+			fmt.Fprintf(w, "<option>%s-%s</option>", result.Members[1],types[i])
+		}
+		i++
+
 	}
 
 	fmt.Fprintf(w, `
@@ -191,7 +204,7 @@ func SuggestionsPageHandler(w http.ResponseWriter, r *http.Request) {
 
 func SearchHandler(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query().Get("query")
-	results := PerformSearch(query)
+	results ,_:= PerformSearch(query)
 
 	err := Tpl.ExecuteTemplate(w, "index.html", results)
 	if err != nil {
